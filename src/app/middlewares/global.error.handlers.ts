@@ -3,6 +3,7 @@
 import { NextFunction, Request, Response } from "express";
 import { envVars } from "../config/env";
 import AppError from "../Error-Helpers/App-Error";
+import { ZodError, ZodIssue } from "zod";
 
 export const globalErrorHandlers = (
   err: any,
@@ -12,13 +13,22 @@ export const globalErrorHandlers = (
 ) => {
   let statusCode = 500;
   let message = `Something went wrong.`;
+  let errorDetails: any = null;
 
-  if (err instanceof AppError) {
+  if (err instanceof ZodError) {
+    statusCode = 400;
+    message = "Validation Error";
+    errorDetails = err.issues.map((issue: ZodIssue) => ({
+      path: issue.path.join("."),
+      message: issue.message,
+      code: issue.code,
+    }));
+  } else if (err instanceof AppError) {
     statusCode = err.statusCode;
-    message = err.message
+    message = err.message;
   } else if (err instanceof Error) {
     statusCode = 500;
-    message = err.message
+    message = err.message;
   }
 
   res.status(statusCode).json({
