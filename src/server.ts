@@ -1,8 +1,10 @@
 /* eslint-disable no-console */
+
 import { Server } from "http";
 import mongoose from "mongoose";
 import app from "./app";
 import { envVars } from "./app/config/env";
+import { seedSuperAdmin } from "./app/utils/seedSuperAdmin";
 
 let server: Server;
 
@@ -19,7 +21,12 @@ const startServer = async () => {
   }
 };
 
-startServer();
+(async () => {
+  await startServer();
+
+  await seedSuperAdmin();
+})();
+
 // *unhandled
 process.on("unhandledRejection", (err) => {
   console.log("Unhandled Rejection detected.. Server is shutting down", err);
