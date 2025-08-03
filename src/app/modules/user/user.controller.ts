@@ -14,11 +14,7 @@ const getAllUsers = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const result = await UserServices.getAllUsers();
 
-    // res.status(httpStatus.OK).json({
-    //   success: true,
-    //   message: "All Users Retrieved Successfully",
-    //   data: users,
-    // });
+   
     sendResponse(res, {
       success: true,
       statusCode: httpStatus.CREATED,
@@ -52,7 +48,9 @@ const updateUser = catchAsync(
     // ) as JwtPayload;
 
     const verifiedToken = req.user;
-    console.log("verified token", verifiedToken);
+    if (envVars.NODE_ENV === "development") {
+      console.log("verified token", verifiedToken);
+    }
     const payload = req.body;
     const user = await UserServices.updateUser(
       userId,

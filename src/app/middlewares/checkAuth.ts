@@ -57,7 +57,10 @@ export const checkAuth =
 
       next();
     } catch (error) {
-      console.log("jwt error", error);
+      if (envVars.NODE_ENV === "development") {
+        // eslint-disable-next-line no-console
+        console.log("jwt error", error);
+      }
       next(error);
     }
   };

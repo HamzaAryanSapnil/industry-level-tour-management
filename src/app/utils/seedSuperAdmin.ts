@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import bcrypt from "bcryptjs";
 import { envVars } from "../config/env";
 import { IAuthProvider, IUser, Role } from "../modules/user/user.interface";
@@ -10,11 +11,15 @@ export const seedSuperAdmin = async () => {
     });
 
     if (isSuperAdminExists) {
-      console.log("Super Admin Already Exists");
+      if (envVars.NODE_ENV === "development") {
+        console.log("Super Admin Already Exists");
+      }
       return;
     }
 
-    console.log("Trying to create super admin...")
+    if (envVars.NODE_ENV === "development") {
+      console.log("Trying to create super admin...");
+    }
 
     const hashedPassword = await bcrypt.hash(
       envVars.SUPER_ADMIN_PASSWORD,
@@ -32,18 +37,18 @@ export const seedSuperAdmin = async () => {
       email: envVars.SUPER_ADMIN_EMAIL,
       password: hashedPassword,
       auths: [authProvider],
-      isVerified: true
+      isVerified: true,
     };
-
-
-    
 
     const superAdmin = await User.create(payload);
 
-    console.log("Super Admin Created Successfully \n")
-    console.log(superAdmin)
-
+    if (envVars.NODE_ENV === "development") {
+      console.log("Super Admin Created Successfully \n");
+      console.log(superAdmin);
+    }
   } catch (error) {
-    console.log(error);
+    if (envVars.NODE_ENV === "development") {
+      console.log(error);
+    }
   }
 };

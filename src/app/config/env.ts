@@ -54,9 +54,8 @@ const loadEnvVariables = (): EnvConfig => {
     }
   });
 
-  console.log({
-    callback: process.env.GOOGLE_CALLBACK_URL
-  })
+
+
 
   return {
     PORT: process.env.PORT as string,
