@@ -11,13 +11,19 @@ let server: Server;
 const startServer = async () => {
   try {
     await mongoose.connect(envVars.MONGODB_URI);
-    console.log("connected to db");
+    if (envVars.NODE_ENV === "development") {
+      console.log("connected to db");
+    }
 
     server = app.listen(envVars.PORT, async () => {
-      console.log(`server is listening on port ${envVars.PORT}`);
+      if (envVars.NODE_ENV === "development") {
+        console.log(`server is listening on port ${envVars.PORT}`);
+      }
     });
   } catch (error) {
-    console.log(error);
+    if (envVars.NODE_ENV === "development") {
+      console.log(error);
+    }
   }
 };
 
@@ -29,7 +35,9 @@ const startServer = async () => {
 
 // *unhandled
 process.on("unhandledRejection", (err) => {
-  console.log("Unhandled Rejection detected.. Server is shutting down", err);
+  if (envVars.NODE_ENV === "development") {
+    console.log("Unhandled Rejection detected.. Server is shutting down", err);
+  }
   if (server) {
     server.close(() => {
       process.exit(1);
@@ -40,7 +48,9 @@ process.on("unhandledRejection", (err) => {
 });
 // *uncaugth
 process.on("uncaughtException", (err) => {
-  console.log("Uncaugth Exception detected.. Server is shutting down", err);
+  if (envVars.NODE_ENV === "development") {
+    console.log("Uncaugth Exception detected.. Server is shutting down", err);
+  }
   if (server) {
     server.close(() => {
       process.exit(1);
@@ -51,7 +61,9 @@ process.on("uncaughtException", (err) => {
 });
 
 process.on("SIGTERM", () => {
-  console.log("Sigterm signal received.. Server is shutting down");
+  if (envVars.NODE_ENV === "development") {
+    console.log("Sigterm signal received.. Server is shutting down");
+  }
   if (server) {
     server.close(() => {
       process.exit(1);
@@ -61,7 +73,9 @@ process.on("SIGTERM", () => {
   process.exit(1);
 });
 process.on("SIGINT", () => {
-  console.log("Sigint signal received.. Server is shutting down");
+  if (envVars.NODE_ENV === "development") {
+    console.log("Sigint signal received.. Server is shutting down");
+  }
   if (server) {
     server.close(() => {
       process.exit(1);

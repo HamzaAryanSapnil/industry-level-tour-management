@@ -1,13 +1,60 @@
+import bcryptjs from "bcryptjs";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import passport from "passport";
-import {
-  Strategy as GoogleStrategy,
-  Profile,
-  VerifyCallback,
-} from "passport-google-oauth20";
+import { Strategy as GoogleStrategy, Profile } from "passport-google-oauth20";
 import { Role } from "../modules/user/user.interface";
 import { User } from "../modules/user/user.model";
 import { envVars } from "./env";
+import { Strategy as LocalStrategy } from "passport-local";
+
+passport.use(
+  new LocalStrategy(
+    {
+      usernameField: "email",
+      passwordField: "password",
+    },
+    async (email: string, password: string, done) => {
+      try {
+        const isUserExists = await User.findOne({ email });
+
+        // if (!isUserExists) {
+        //   return done(null, false, { message: "User doesn't exists" });
+        // }
+
+        if (!isUserExists) {
+          return done("User doesn't exists");
+        }
+
+        const isGoogleAuthenticated = isUserExists.auths.some(
+          (providerObjects) => providerObjects.provider == "google"
+        );
+
+        if (isGoogleAuthenticated && !isUserExists.password) {
+          return done(
+            "You have authenticated through google login. If you want to login with credentials, then at first login with google and set a password for your gmail. And then you can login in with email and password"
+          );
+        }
+
+        const isPassMatched = await bcryptjs.compare(
+          password as string,
+          isUserExists.password as string
+        );
+
+        if (!isPassMatched) {
+          return done(null, false, { message: "Password Doesn't Matched." });
+        }
+
+        return done(null, isUserExists);
+      } catch (err) {
+        if (envVars.NODE_ENV === "development") {
+          // eslint-disable-next-line no-console
+          console.log(err);
+        }
+        done(err);
+      }
+    }
+  )
+);
 
 passport.use(
   new GoogleStrategy(
@@ -20,7 +67,7 @@ passport.use(
       accessToken: string,
       refreshToken: string,
       profile: Profile,
-      done: VerifyCallback
+      done
     ) => {
       try {
         const email = profile.emails?.[0].value;
@@ -49,7 +96,11 @@ passport.use(
 
         return done(null, user);
       } catch (error) {
-        console.log("Google Strategy Error", error);
+        if (envVars.NODE_ENV === "development") {
+          // eslint-disable-next-line no-console
+          console.log("Google Strategy Error", error);
+          
+        }
         return done(error);
       }
     }
@@ -66,12 +117,16 @@ passport.serializeUser((user: any, done: (err: any, id?: unknown) => void) => {
   done(null, user._id);
 });
 
-passport.deserializeUser(async (id: string, done: any) => {
+passport.deserializeUser(async (id: string, done) => {
   try {
     const user = await User.findById(id);
     done(null, user);
   } catch (error) {
-    console.log(error);
+    if (envVars.NODE_ENV === "development") {
+      // eslint-disable-next-line no-console
+      console.log(error);
+      
+    }
     done(error);
   }
 });
